@@ -32,11 +32,17 @@
     (let [params (get request :params)
           message (get params "message")]
       (swap! messages conj message)
+      (spit "messages.edn" (pr-str @messages)) ; Saves the messages to file on every submital - I love how simple this is
       (r/redirect "/"))))
             
              
 
 (defn -main [& args]
+  (try 
+    (let [messages-str (slurp "messages.edn")   ; parses file if it exists into a string
+          messages-vec (read-string messages-str)] ;takes the string and makes it into a vector
+      (reset! messages messages-vec))
+    (catch Exception _))
   (when @server
     (.stop @server))
   (let [app(p/wrap-params app)]
